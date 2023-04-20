@@ -1,0 +1,116 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+
+signing {
+    sign configurations.archives
+}
+
+android {
+    namespace "com.quinengine.android_sdk"
+    compileSdk 33
+    defaultConfig {
+        versionCode 1
+        versionName "1.0"
+        minSdk 24
+        targetSdk 33
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username ossrhUsername
+                password ossrhPassword
+            }
+        }
+    }
+
+    publications {
+        maven(MavenPublication) {
+            artifactId = 'android-sdk'
+            groupId = 'com.quinengine'
+            version = '1.0.0'
+            description = 'Android software development kit for Quin Audience Engine services.'
+
+            pom {
+                name = 'Quin Android SDK'
+                url = 'https://www.quinengine.com'
+                packaging 'jar'
+
+                scm {
+                    connection = 'scm:git:git://github.com/quinai/android-sdk.git'
+                    developerConnection = 'scm:git:git://github.com/quinai/android-sdk.git'
+                    url = 'https://github.com/quinai/android-sdk/tree/production'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'batuhan'
+                        name = 'Batuhan Caliskan'
+                        email = 'batuhan@quinengine.com'
+                    }
+                }
+            }
+        }
+    }
+}
+
+task javadoc(type: Javadoc) {
+    // configure the javadoc task
+}
+
+task javadocJar(type: Jar) {
+    archiveClassifier.set('javadoc')
+    from javadoc
+}
+
+sourceSets {
+    lib {
+        java {
+            srcDirs = ['src/lib/kotlin']
+        }
+        resources {
+            srcDirs = ['src/lib/kotlin']
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from sourceSets.lib.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.10.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.preference:preference-ktx:1.2.0'
+    implementation 'io.ktor:ktor-client-android:1.6.4'
+    implementation 'io.ktor:ktor-client-serialization:1.6.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
+    implementation 'io.ktor:ktor-client-logging-jvm:1.6.4'
+    implementation 'androidx.test.ext:junit-ktx:1.1.5'
+}
