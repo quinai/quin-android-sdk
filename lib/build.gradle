@@ -63,7 +63,7 @@ afterEvaluate {
                     password ossrhPassword
                 }
                 //You can check your published files via ./gradlew publish
-                //url = "file:///Users/batubond007/Desktop/Quin/android-sdk/lib/testBuild"
+                //url = "file://path"
             }
         }
 
