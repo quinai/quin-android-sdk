@@ -1,106 +1,118 @@
 plugins {
     id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
     id 'maven-publish'
     id 'signing'
 }
 
-
-signing {
-    sign configurations.archives
-}
-
 android {
-    namespace "com.quinengine.android_sdk"
+    namespace "com.quinengine"
     compileSdk 33
     defaultConfig {
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.1"
         minSdk 24
         targetSdk 33
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java']
+            kotlin.srcDirs = ['src/main/kotlin']
+        }
     }
 
     publishing {
         singleVariant("release") {
             withSourcesJar()
-        }
-    }
-}
-
-publishing {
-    repositories {
-        maven {
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            credentials {
-                username ossrhUsername
-                password ossrhPassword
-            }
+            withJavadocJar()
         }
     }
 
-    publications {
-        maven(MavenPublication) {
-            artifactId = 'android-sdk'
-            groupId = 'com.quinengine'
-            version = '1.0.0'
-            description = 'Android software development kit for Quin Audience Engine services.'
-
-            pom {
-                name = 'Quin Android SDK'
-                url = 'https://www.quinengine.com'
-                packaging 'jar'
-
-                scm {
-                    connection = 'scm:git:git://github.com/quinai/android-sdk.git'
-                    developerConnection = 'scm:git:git://github.com/quinai/android-sdk.git'
-                    url = 'https://github.com/quinai/android-sdk/tree/production'
-                }
-
-                licenses {
-                    license {
-                        name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = 'batuhan'
-                        name = 'Batuhan Caliskan'
-                        email = 'batuhan@quinengine.com'
-                    }
-                }
-            }
+    buildTypes {
+        release {
+            minifyEnabled false
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 }
 
-task javadoc(type: Javadoc) {
-    // configure the javadoc task
-}
-
-task javadocJar(type: Jar) {
-    archiveClassifier.set('javadoc')
-    from javadoc
-}
-
-sourceSets {
-    lib {
-        java {
-            srcDirs = ['src/lib/kotlin']
-        }
-        resources {
-            srcDirs = ['src/lib/kotlin']
-        }
-    }
-}
-
-task sourcesJar(type: Jar) {
-    archiveClassifier.set('sources')
-    from sourceSets.lib.allSource
+task jar(type: Jar) {
+    archiveClassifier.set('')
+    from android.sourceSets.main.kotlin.srcDirs
 }
 
 artifacts {
-    archives javadocJar, sourcesJar
+    archives jar
+}
+
+afterEvaluate {
+    publishing {
+        repositories {
+            maven {
+                url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                credentials {
+                    username ossrhUsername
+                    password ossrhPassword
+                }
+                //You can check your published files via ./gradlew publish
+                //url = "file:///Users/batubond007/Desktop/Quin/android-sdk/lib/testBuild"
+            }
+        }
+
+        publications {
+            maven(MavenPublication) {
+                from components.release
+
+                artifactId = 'android-sdk'
+                groupId = 'com.quinengine'
+                version = '1.0.1'
+                description = 'Android software development kit for Quin Audience Engine services.'
+
+                artifact jar
+
+                pom {
+                    name = 'Quin Android SDK'
+                    description = 'Android software deleopment kit of Quin Audience Engine Services'
+                    url = 'https://www.quinengine.com'
+                    packaging 'jar'
+
+                    scm {
+                        connection = 'scm:git:git://github.com/quinai/android-sdk.git'
+                        developerConnection = 'scm:git:git://github.com/quinai/android-sdk.git'
+                        url = 'https://github.com/quinai/android-sdk/tree/production'
+                    }
+
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'batuhan'
+                            name = 'Batuhan Caliskan'
+                            email = 'batuhan@quinengine.com'
+                        }
+                    }
+                }
+            }
+        }
+
+        signing {
+            sign publishing.publications.maven
+        }
+
+    }
 }
 
 dependencies {
