@@ -5,7 +5,7 @@ class LogConfiguration {
 }
 
 class HttpConfiguration {
-    val url = "t.quinengine.com/api/v1"
+    val url = "g.quinengine.com/api/v1"
     var apiKey: String? = ""
     var domain: String? = ""
 }
