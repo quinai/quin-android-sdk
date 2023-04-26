@@ -10,7 +10,7 @@ android {
     compileSdk 33
     defaultConfig {
         versionCode 1
-        versionName "1.0.1"
+        versionName "1.0.2"
         minSdk 24
         targetSdk 33
     }
@@ -62,8 +62,6 @@ afterEvaluate {
                     username ossrhUsername
                     password ossrhPassword
                 }
-                //You can check your published files via ./gradlew publish
-                //url = "file://path"
             }
         }
 
@@ -73,7 +71,7 @@ afterEvaluate {
 
                 artifactId = 'android-sdk'
                 groupId = 'com.quinengine'
-                version = '1.0.1'
+                version = '1.0.2'
                 description = 'Android software development kit for Quin Audience Engine services.'
 
                 artifact jar
