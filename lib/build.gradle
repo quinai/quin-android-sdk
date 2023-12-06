@@ -1,18 +1,20 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id 'maven-publish'
     id 'signing'
+    id 'kotlinx-serialization'
 }
 
 android {
     namespace "com.quinengine"
-    compileSdk 33
+    compileSdk 34
     defaultConfig {
         versionCode 1
-        versionName "1.0.2"
-        minSdk 24
-        targetSdk 33
+        versionName "1.0.3"
+        minSdk 21
     }
 
     sourceSets {
@@ -49,6 +51,15 @@ task jar(type: Jar) {
     from android.sourceSets.main.kotlin.srcDirs
 }
 
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    testLogging {
+        showExceptions = true
+        showStandardStreams = true
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+}
+
 artifacts {
     archives jar
 }
@@ -59,8 +70,8 @@ afterEvaluate {
             maven {
                 url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
                 credentials {
-                    username ossrhUsername
-                    password ossrhPassword
+                    username "ossrhUsername"
+                    password "ossrhPassword"
                 }
             }
         }
@@ -114,13 +125,15 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.10.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
-    implementation 'androidx.preference:preference-ktx:1.2.0'
-    implementation 'io.ktor:ktor-client-android:1.6.4'
-    implementation 'io.ktor:ktor-client-serialization:1.6.4'
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
-    implementation 'io.ktor:ktor-client-logging-jvm:1.6.4'
-    implementation 'androidx.test.ext:junit-ktx:1.1.5'
+    implementation 'io.ktor:ktor-client-core:2.3.6'
+    implementation 'io.ktor:ktor-client-android:2.3.6'
+    implementation 'io.ktor:ktor-client-serialization:2.3.6'
+    implementation 'io.ktor:ktor-client-logging-jvm:2.3.6'
+    implementation 'io.ktor:ktor-client-content-negotiation:2.3.6'
+    implementation 'io.ktor:ktor-serialization-kotlinx-json:2.3.6'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation "androidx.test:core:1.5.0"
+    testImplementation "org.mockito:mockito-core:5.8.0"
+
+
 }

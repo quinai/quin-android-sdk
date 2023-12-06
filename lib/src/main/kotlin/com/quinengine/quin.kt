@@ -70,10 +70,11 @@ interface ECommerce {
         quantity: Int,
         completion: ActionHandler
     )
+
+    fun sendTestEvent(context: Context, completion: ActionHandler)
 }
 
 class Quin private constructor() {
-
     companion object {
         private const val pathSession = "session"
         private const val pathEvent = "event"
@@ -90,7 +91,12 @@ class Quin private constructor() {
             user?.googleClientId = googleClientId
         }
 
-        fun track(context: Context, event: Event, completion: ActionHandler) {
+        fun track(
+            context: Context,
+            path: String = pathEvent,
+            event: Event,
+            completion: ActionHandler
+        ) {
             val user = sharedInstance.user(context)
             if (user == null) {
                 Logger.sharedInstance.log("quin track: user is null")
@@ -105,7 +111,7 @@ class Quin private constructor() {
                 return
             }
             runBlocking {
-                Http.sharedInstance.post(pathEvent, httpBody) { response ->
+                Http.sharedInstance.post(path, httpBody) { response ->
                     sharedInstance.saveUser(
                         context,
                         response
@@ -114,34 +120,9 @@ class Quin private constructor() {
             }
         }
 
-        fun test(context: Context, event: Event, completion: ActionHandler) {
-            val user = sharedInstance.user(context)
-            if (user == null) {
-                Logger.sharedInstance.log("quin track: user is null")
-                return
-            }
-            val req = event.withUser(user)
-            val httpBody: String
-            try {
-                httpBody = Http.sharedInstance.json.encodeToString(req)
-            } catch (e: Exception) {
-                Logger.sharedInstance.log("quin track: encode error")
-                return
-            }
-
-            runBlocking {
-                Http.sharedInstance.post(testEvent, httpBody) { response ->
-                    sharedInstance.saveUser(
-                        context,
-                        response
-                    );completion(response!!.content!!.interaction)
-                }
-            }
-        }
     }
 
-
-    internal class ECommerceImpl() : ECommerce {
+    internal class ECommerceImpl : ECommerce {
         override fun sendPageViewHomeEvent(context: Context, completion: ActionHandler) {
             track(context, event = Event.eCommerce.pageViewHomeEvent(), completion = completion)
         }
@@ -332,6 +313,15 @@ class Quin private constructor() {
             track(
                 context,
                 event = Event.eCommerce.addToCartServiceEvent(item = item, quantity = quantity),
+                completion = completion
+            )
+        }
+
+        override fun sendTestEvent(context: Context, completion: ActionHandler) {
+            track(
+                context,
+                path = testEvent,
+                event = Event.eCommerce.pageViewHomeEvent(),
                 completion = completion
             )
         }

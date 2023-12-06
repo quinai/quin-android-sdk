@@ -10,7 +10,7 @@ class UserStore private constructor() {
         fun load(context: Context): User? {
             val defaults = context.getSharedPreferences(context.packageName, Context.MODE_PRIVATE)
             val userId = defaults.getString(keyUserId, "")
-            if (userId == "") {
+            if (userId == "" || userId == null) {
                 Logger.sharedInstance.log("quin store load: userId is empty")
                 return null
             }
@@ -20,7 +20,7 @@ class UserStore private constructor() {
                 return null
             }
             val gcid = defaults.getString(keyGcid, "")
-            return User(userId!!, token!!, gcid!!)
+            return User(userId, token!!, gcid!!)
         }
 
         fun save(context: Context, user: User) {
@@ -31,13 +31,6 @@ class UserStore private constructor() {
             if (user.googleClientId.isNotEmpty()) {
                 editor.putString(keyGcid, user.googleClientId)
             }
-            editor.apply()
-        }
-
-        fun delete(context: Context) {
-            val defaults = context.getSharedPreferences(context.packageName, Context.MODE_PRIVATE)
-            val editor = defaults.edit()
-            editor.clear()
             editor.apply()
         }
     }

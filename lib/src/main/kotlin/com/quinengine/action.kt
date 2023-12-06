@@ -45,8 +45,7 @@ class Action(
         if (custom != other.custom) return false
         if (avgPrice != other.avgPrice) return false
         if (display != other.display) return false
-        if (html != other.html) return false
-        return true
+        return html == other.html
     }
 
     override fun hashCode(): Int {
@@ -89,8 +88,7 @@ data class Display(
         if (paddle != other.paddle) return false
         if (position != other.position) return false
         if (fields != other.fields) return false
-        if (properties != other.properties) return false
-        return true
+        return properties == other.properties
     }
 
     override fun hashCode(): Int {
@@ -122,8 +120,7 @@ data class DisplayField(
         if (text != other.text) return false
         if (color != other.color) return false
         if (url != other.url) return false
-        if (position != other.position) return false
-        return true
+        return position == other.position
     }
 
     override fun hashCode(): Int {
