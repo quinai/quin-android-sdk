@@ -87,8 +87,7 @@ class Quin private constructor() {
         }
 
         fun setUser(context: Context, googleClientId: String) {
-            val user = sharedInstance.user(context)
-            user?.googleClientId = googleClientId
+            sharedInstance.user(context, googleClientId)
         }
 
         fun track(
@@ -327,14 +326,14 @@ class Quin private constructor() {
         }
     }
 
-    private fun user(context: Context): User? {
+    private fun user(context: Context, googleClientId: String? = null): User? {
         val user = UserStore.load(context)
         if (user == null) {
             val mutex = Mutex(false)
             runBlocking {
                 mutex.withLock {
                     Http.sharedInstance.post(pathSession, null) { response ->
-                        saveUser(context, response)
+                        saveUser(context, response, googleClientId)
                     }
                 }
             }
@@ -342,12 +341,15 @@ class Quin private constructor() {
         return UserStore.load(context)
     }
 
-    private fun saveUser(context: Context, response: Response?) {
+    private fun saveUser(context: Context, response: Response?, googleClientId: String? = null) {
         if (response?.content == null) {
             Logger.sharedInstance.log("quin saveUser: response user is null")
             return
         }
         val user = response.content.user()
+        if (googleClientId != null) {
+            user.googleClientId = googleClientId
+        }
         UserStore.save(context, user)
     }
 }
