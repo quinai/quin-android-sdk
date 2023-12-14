@@ -119,6 +119,10 @@ class Quin private constructor() {
             }
         }
 
+        fun closeConnection() {
+            Http.sharedInstance.closeConnection()
+        }
+
     }
 
     internal class ECommerceImpl : ECommerce {

@@ -62,7 +62,6 @@ class Http private constructor() {
 
     private suspend fun execute(request: HttpRequestBuilder, completion: ResponseHandler) {
         val res = client.request(request).body<Response>()
-        client.close()
         completion(res)
     }
 
@@ -71,5 +70,8 @@ class Http private constructor() {
         execute(request, completion)
     }
 
+    fun closeConnection() {
+        client.close()
+    }
 
 }
