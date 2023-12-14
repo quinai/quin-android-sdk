@@ -96,27 +96,26 @@ class Quin private constructor() {
             event: Event,
             completion: ActionHandler
         ) {
-            val user = sharedInstance.user(context)
-            if (user == null) {
-                Logger.sharedInstance.log("quin track: user is null")
-                return
-            }
-            val req = event.withUser(user)
-            val httpBody: String
             try {
-                httpBody = Http.sharedInstance.json.encodeToString(req)
-            } catch (e: java.lang.Exception) {
-                Logger.sharedInstance.log("quin track: encode error")
-                return
-            }
-            runBlocking {
-                Http.sharedInstance.post(path, httpBody) { response ->
-                    sharedInstance.saveUser(
-                        context,
-                        response
-                    ); completion(response!!.content!!.interaction)
+                val user = sharedInstance.user(context)
+                if (user == null) {
+                    Logger.sharedInstance.log("quin track: user is null")
+                    return
                 }
+                val req = event.withUser(user)
+                val httpBody: String = Http.sharedInstance.json.encodeToString(req)
+                runBlocking {
+                    Http.sharedInstance.post(path, httpBody) { response ->
+                       sharedInstance.saveUser(
+                            context,
+                            response
+                        ); completion(response!!.content!!.interaction)
+                    }
+                }
+            } catch (e: java.lang.Exception) {
+                Logger.sharedInstance.log("quin track: ${e.message}")
             }
+
         }
 
         fun closeConnection() {
@@ -331,29 +330,40 @@ class Quin private constructor() {
     }
 
     private fun user(context: Context, googleClientId: String? = null): User? {
-        val user = UserStore.load(context)
-        if (user == null) {
-            val mutex = Mutex(false)
-            runBlocking {
-                mutex.withLock {
-                    Http.sharedInstance.post(pathSession, null) { response ->
-                        saveUser(context, response, googleClientId)
+        try {
+            val user = UserStore.load(context)
+            if (user == null) {
+                val mutex = Mutex(false)
+                runBlocking {
+                    mutex.withLock {
+                        Http.sharedInstance.post(pathSession, null) { response ->
+                            saveUser(context, response, googleClientId)
+                        }
                     }
                 }
             }
+            return UserStore.load(context)
+        } catch (e: java.lang.Exception) {
+            Logger.sharedInstance.log("quin user: ${e.message}")
+            return null
         }
-        return UserStore.load(context)
     }
 
     private fun saveUser(context: Context, response: Response?, googleClientId: String? = null) {
-        if (response?.content == null) {
-            Logger.sharedInstance.log("quin saveUser: response user is null")
-            return
+        try {
+            if (response?.content == null) {
+                Logger.sharedInstance.log("quin saveUser: response user is null")
+                return
+            }
+            val user = response.content.user()
+            if (googleClientId != null) {
+                user.googleClientId = googleClientId
+            }
+            UserStore.save(context, user)
+        } catch (e: java.lang.Exception) {
+            Logger.sharedInstance.log("quin user: ${e.message}")
+
         }
-        val user = response.content.user()
-        if (googleClientId != null) {
-            user.googleClientId = googleClientId
-        }
-        UserStore.save(context, user)
+
     }
 }
