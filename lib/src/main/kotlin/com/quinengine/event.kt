@@ -282,7 +282,7 @@ data class Event(
                 category = EventCategory.checkout.toString(),
                 action = EventAction.click.toString(),
                 label = EventLabel.purchasecompleted.toString()
-            ).withCustomAttribute("totalBasketSize", totalBasketSize.toString())
+            ).withCustomAttribute("totalbasketsize", totalBasketSize.toString())
         }
 
         override fun addToCartServiceEvent(item: Item?, quantity: Int): Event {
