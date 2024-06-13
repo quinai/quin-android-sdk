@@ -7,6 +7,7 @@ data class Item(
     val id: String,
     val name: String,
     val category: String,
+    val categoryId: String,
     val price: Double,
     val currency: String,
     private var _customAttributes: MutableMap<String, String> = mutableMapOf()

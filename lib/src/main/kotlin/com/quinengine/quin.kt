@@ -8,7 +8,7 @@ import kotlinx.serialization.encodeToString
 
 interface ECommerce {
     fun sendPageViewHomeEvent(context: Context, completion: ActionHandler)
-    fun sendPageViewListingEvent(context: Context, label: String, completion: ActionHandler)
+    fun sendPageViewListingEvent(context: Context, label: String, categoryId:String, completion: ActionHandler)
     fun sendAddToCartListingEvent(
         context: Context,
         item: Item?,
@@ -132,11 +132,12 @@ class Quin private constructor() {
         override fun sendPageViewListingEvent(
             context: Context,
             label: String,
+            categoryId: String,
             completion: ActionHandler
         ) {
             track(
                 context,
-                event = Event.eCommerce.pageViewListingEvent(label = label),
+                event = Event.eCommerce.pageViewListingEvent(label = label, categoryId = categoryId),
                 completion = completion
             )
         }
