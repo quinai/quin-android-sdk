@@ -55,6 +55,7 @@ Item {
  id: String,
  name: String,
  category: String,
+ categoryId: String,
  price: Decimal,
  currency: String,
 }
@@ -65,7 +66,8 @@ Here is an example of Item creation.
 ```kotlin
 Item(id= "1250353863",
  name= "wooden chair",
- category= "Garden",
+ category= "Garden", 
+ categoryId ="1001",
  price= 39.99,
  currency= "USD"
 ```
@@ -80,6 +82,7 @@ Action {
    actionName: String?
    actionType: String?
    category: String?
+   categoryId: String?
    promotionCode: String?
    custom: Boolean?
    avgPrice: Double?
@@ -146,6 +149,7 @@ Functions that send predefined events by Quin SDK are listed below.
 ```kotlin
 sendPageViewHomeEvent(context: Context, completion: ActionHandler)
 sendPageViewListingEvent(context: Context, label: String, completion: ActionHandler)
+sendPageViewListingWithCategoryIdEvent(context: Context, label: String,categoryId: String,completion: ActionHandler)
 sendAddToCartListingEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler)
 sendFilterEvent(context: Context, completion: ActionHandler)
 sendPageViewDetailEvent(context: Context, item: Item?, completion: ActionHandler)
@@ -185,6 +189,7 @@ In order to send custom events first you need to create event to be sent. We hav
 pageViewHomeEvent()
 pageViewListingEvent(label: String)
 addToCartListingEvent(item: Item?, quantity: Int)
+pageViewListingWithCategoryId(label:String, categoryId: String)
 filterEvent()
 pageViewDetailEvent(item: Item?)
 addToCartDetailEvent(item: Item?, quantity: Int)
@@ -239,7 +244,7 @@ Quin.track(context, event = event) { action ->
 If those functions does not satisfy your use cases, you can create custom events and send them to Quin services again using track function. Following example demonstrates how to create custom events and send it. 
 
 ```kotlin
-val item = Item("id", "name", "cat", 5.00, "usd")
+val item = Item("id", "name", "cat", "cat-id", 5.00, "usd")
 val event = Event(category = EventCategory.home.toString(),
                   action = EventAction.click.toString(), 
                   label = "custom label", 
@@ -262,6 +267,7 @@ Action: {
     actionId:      "d3da1e3c5b1f8159",
     actionType:    "upsell",
     category:      "Garden > Storage > Storage Wardrobe",
+    categoryId: "cat-id",
     promotionCode: "QTK1-4RSS-RR38-FTGR",
     custom:        false,
     display: {
@@ -318,6 +324,7 @@ You can use this action as a reference and use it to draw pop-ups etc. In order 
         id = "testId",
         name = "testName",
         category = "testCategory",
+        categoryId = "categoryId",
         price = 93.8,
         currency = "TRY"
     )
