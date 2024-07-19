@@ -42,6 +42,7 @@ enum class EventAction {
 interface ECommerceEvent {
     fun pageViewHomeEvent(): Event
     fun pageViewListingEvent(label: String): Event
+    fun pageViewListingWithCategoryId(label:String, categoryId: String):Event
     fun addToCartListingEvent(item: Item?, quantity: Int): Event
     fun filterEvent(): Event
     fun pageViewDetailEvent(item: Item?): Event
@@ -110,6 +111,14 @@ data class Event(
             )
         }
 
+        override fun pageViewListingWithCategoryId(label:String, categoryId: String):Event{
+            return Event(
+                category = EventCategory.listing.toString(),
+                action = EventAction.pageview.toString(),
+                label = label
+            ).withCustomAttribute("categoryId", categoryId)
+        }
+
         override fun addToCartListingEvent(item: Item?, quantity: Int): Event {
             return Event(
                 category = EventCategory.listing.toString(),
@@ -131,7 +140,7 @@ data class Event(
                 action = EventAction.pageview.toString(),
                 label = item!!.category,
                 item = item
-            )
+            ).withCustomAttribute("categoryId", item!!.categoryId)
         }
 
         override fun addToCartDetailEvent(item: Item?, quantity: Int): Event {

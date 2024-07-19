@@ -27,6 +27,7 @@ class Action(
     val actionName: String? = null,
     val actionType: String? = null,
     val category: String? = null,
+    val categoryId: String? = null,
     val promotionCode: String? = null,
     val custom: Boolean? = null,
     val avgPrice: Double? = null,
@@ -41,6 +42,7 @@ class Action(
         if (actionName != other.actionName) return false
         if (actionType != other.actionType) return false
         if (category != other.category) return false
+        if (categoryId != other.category) return false
         if (promotionCode != other.promotionCode) return false
         if (custom != other.custom) return false
         if (avgPrice != other.avgPrice) return false
@@ -53,6 +55,7 @@ class Action(
         result = 31 * result + (actionName?.hashCode() ?: 0)
         result = 31 * result + (actionType?.hashCode() ?: 0)
         result = 31 * result + (category?.hashCode() ?: 0)
+        result = 31 * result + (categoryId?.hashCode() ?: 0)
         result = 31 * result + (promotionCode?.hashCode() ?: 0)
         result = 31 * result + (custom?.hashCode() ?: 0)
         result = 31 * result + (avgPrice?.hashCode() ?: 0)
@@ -66,6 +69,7 @@ class Action(
                 " actionName=$actionName," +
                 " actionType=$actionType," +
                 " category=$category," +
+                " categoryId=$categoryId," +
                 " promotionCode=$promotionCode," +
                 " custom=$custom," +
                 " avgPrice=$avgPrice," +
