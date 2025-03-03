@@ -83,7 +83,8 @@ data class Display(
     val paddle: Boolean? = null,
     val position: String? = null,
     val fields: Map<String, DisplayField>? = null,
-    val properties: Map<String, DisplayProperty>? = null
+    val properties: Map<String, DisplayProperty>? = null,
+    val products: Map<String, ProductResponse>? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -92,6 +93,7 @@ data class Display(
         if (paddle != other.paddle) return false
         if (position != other.position) return false
         if (fields != other.fields) return false
+        if(products != other.products) return false
         return properties == other.properties
     }
 
@@ -100,11 +102,47 @@ data class Display(
         result = 31 * result + (position?.hashCode() ?: 0)
         result = 31 * result + (fields?.hashCode() ?: 0)
         result = 31 * result + (properties?.hashCode() ?: 0)
+        result = 31 * result + (products?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "Display(paddle=$paddle, position=$position, fields=$fields, properties=$properties)"
+        return "Display(paddle=$paddle, position=$position, fields=$fields, properties=$properties, products=$products)"
+    }
+}
+@Serializable
+data class ProductResponse (
+    val title:String? = null,
+    val image:String? = null,
+    val url:String? = null,
+    val price:String? = null,
+    val salesPrice:String? = null,
+    val productCodePost:String? = null
+){
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as ProductResponse
+        if (title != other.title) return false
+        if (image != other.image) return false
+        if (url != other.url) return false
+        if (price != other.price) return false
+        if (salesPrice != other.salesPrice) return false
+        return productCodePost == other.productCodePost
+    }
+
+    override fun hashCode(): Int {
+        var result = title?.hashCode() ?: 0
+        result = 31 * result + (image?.hashCode() ?: 0)
+        result = 31 * result + (url?.hashCode() ?: 0)
+        result = 31 * result + (price?.hashCode() ?: 0)
+        result = 31 * result + (salesPrice?.hashCode() ?: 0)
+        result = 31 * result + (productCodePost?.hashCode() ?: 0)
+        return result
+    }
+
+    override fun toString(): String {
+        return "ProductResponse(title=$title, image=$image, url=$url, price=$price, salesPrice=$salesPrice, productCodePost=$productCodePost)"
     }
 }
 
@@ -114,7 +152,9 @@ data class DisplayField(
     val text: String? = null,
     val color: String? = null,
     val url: String? = null,
-    val position: String? = null
+    val position: String? = null,
+    val textColor: String? = null,
+    val styleResponse: StyleResponse? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -124,6 +164,8 @@ data class DisplayField(
         if (text != other.text) return false
         if (color != other.color) return false
         if (url != other.url) return false
+        if(textColor != other.textColor) return false
+        if(styleResponse != other.styleResponse) return false
         return position == other.position
     }
 
@@ -133,11 +175,50 @@ data class DisplayField(
         result = 31 * result + (color?.hashCode() ?: 0)
         result = 31 * result + (url?.hashCode() ?: 0)
         result = 31 * result + (position?.hashCode() ?: 0)
+        result = 31 * result + (styleResponse?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
         return "DisplayField(name=$name, text=$text, color=$color, url=$url, position=$position)"
+    }
+}
+
+@Serializable
+data class StyleResponse(
+    val textColor: String? = null,
+    val backGroundColor: String? = null,
+    val position: String? = null,
+    val fontFamily: String? = null,
+    val fontSize: String? = null,
+    val fontWeight:String? = null,
+    val textAlign: String? = null
+){
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as StyleResponse
+        if(textColor != other.textColor) return false
+        if(backGroundColor != other.backGroundColor) return false
+        if(position != other.position) return false
+        if(fontFamily != other.fontFamily) return false
+        if(fontSize != other.fontSize) return false
+        if(fontWeight != other.fontWeight) return false
+        return textAlign == other.textAlign
+    }
+    override fun hashCode(): Int {
+        var result = textColor?.hashCode() ?: 0
+        result = 31 * result + (backGroundColor?.hashCode() ?: 0)
+        result = 31 * result + (position?.hashCode() ?: 0)
+        result = 31 * result + (fontFamily?.hashCode() ?: 0)
+        result = 31 * result + (fontSize?.hashCode() ?: 0)
+        result = 31 * result + (fontWeight?.hashCode() ?: 0)
+        result = 31 * result + (textAlign?.hashCode() ?: 0)
+        return result
+    }
+
+    override fun toString(): String {
+        return "StyleResponse(textColor=$textColor, backGroundColor=$backGroundColor, position=$position, fontFamily=$fontFamily, fontSize=$fontSize,fontWeight=$fontWeight, textAlign=$textAlign)"
     }
 }
 
