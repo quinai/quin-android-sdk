@@ -82,7 +82,7 @@ afterEvaluate {
 
                 artifactId = 'android-sdk'
                 groupId = 'com.quinengine'
-                version = '1.0.8'
+                version = '1.0.9'
                 description = 'Android software development kit for Quin Audience Engine services.'
 
                 artifact jar
