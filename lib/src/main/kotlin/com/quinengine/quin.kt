@@ -1,6 +1,9 @@
 package com.quinengine
 
 import android.content.Context
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -102,24 +105,28 @@ class Quin private constructor() {
             event: Event,
             completion: ActionHandler
         ) {
-            try {
-                val user = sharedInstance.user(context)
-                if (user == null) {
-                    Logger.sharedInstance.log("quin track: user is null")
-                    return
-                }
-                val req = event.withUser(user)
-                val httpBody: String = Http.sharedInstance.json.encodeToString(req)
-                runBlocking {
-                    Http.sharedInstance.post(path, httpBody) { response ->
-                       sharedInstance.saveUser(
-                            context,
-                            response
-                        ); completion(response!!.content!!.interaction)
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val user = sharedInstance.user(context)
+                    if (user == null) {
+                        Logger.sharedInstance.log("quin track: user is null")
+                        return@launch
                     }
+
+                    val req = event.withUser(user)
+                    val httpBody: String = Http.sharedInstance.json.encodeToString(req)
+
+                    Http.sharedInstance.post(path, httpBody) { response ->
+                        response?.let {
+                            sharedInstance.saveUser(context, it)
+                            CoroutineScope(Dispatchers.Main).launch {
+                                completion(it.content?.interaction)
+                            }
+                        } ?: Logger.sharedInstance.log("quin track: response is null")
+                    }
+                } catch (e: Exception) {
+                    Logger.sharedInstance.log("quin track error: ${e.message}")
                 }
-            } catch (e: java.lang.Exception) {
-                Logger.sharedInstance.log("quin track: ${e.message}")
             }
 
         }
