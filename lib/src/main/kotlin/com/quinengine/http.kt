@@ -10,6 +10,7 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.URLProtocol
 import io.ktor.http.encodedPath
@@ -61,7 +62,10 @@ class Http private constructor() {
     }
 
     private suspend fun execute(request: HttpRequestBuilder, completion: ResponseHandler) {
-        val res = client.request(request).body<Response>()
+        val httpResponse = client.request(request)
+        val rawResponseBody = httpResponse.bodyAsText()
+        Logger.sharedInstance.log("RAW RESPONSE: $rawResponseBody")
+        val res = httpResponse.body<Response>()
         completion(res)
     }
 
