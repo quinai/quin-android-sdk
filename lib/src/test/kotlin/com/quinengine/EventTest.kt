@@ -15,13 +15,13 @@ class EventTest {
     @BeforeEach
     fun setup() {
         val ctx = mock<Context>()
-        quin.setConfig("test", "https://demo.quinengine.com", true)
-        quin.setUser(ctx, "test-google-client-id")
+        Quin.getInstance().setConfig("test", "https://demo.quinengine.com", true)
+        Quin.getInstance().setUser(ctx, "test-google-client-id")
     }
 
     @Test
     fun sendTestEvent() {
         val handler: ActionHandler = { a -> assert(a != null) }
-        quin.eCommerce.sendTestEvent(ctx, handler)
+        Quin.getInstance().eCommerce().sendTestEvent(ctx, handler)
     }
 }

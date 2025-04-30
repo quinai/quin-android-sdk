@@ -16,7 +16,8 @@ data class Item(
         get() = _customAttributes.toMap()
 
     fun withCustomAttribute(key: String, value: String): Item {
-        this._customAttributes[key] = value
-        return this.copy()
+        val updatedAttributes = _customAttributes.toMutableMap()
+        updatedAttributes[key] = value
+        return this.copy(_customAttributes = updatedAttributes)
     }
 }

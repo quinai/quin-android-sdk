@@ -83,61 +83,117 @@ interface ECommerce {
     fun sendTestEvent(context: Context, completion: ActionHandler)
 }
 
-class Quin private constructor() {
+class Quin private constructor(private val coroutineScope: CoroutineScope) {
+    private var cachedUser: User? = null
+    private val eCommerceImpl = ECommerceImpl() as ECommerce
+    fun eCommerce(): ECommerce = eCommerceImpl
     companion object {
+
         private const val pathSession = "session"
         private const val pathEvent = "event"
         private const val testEvent = "test-event"
-        private val sharedInstance = Quin()
-        val eCommerce = ECommerceImpl() as ECommerce
-        fun setConfig(apiKey: String, domain: String, debug: Boolean = false) {
-            Http.setConfig(apiKey, domain)
-            Logger.setConfig(debug)
-        }
+        @Volatile
+        private var instance: Quin? = null
 
-        fun setUser(context: Context, googleClientId: String) {
-            sharedInstance.user(context, googleClientId)
-        }
+        fun getInstance(coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)): Quin {
 
-        fun track(
-            context: Context,
-            path: String = pathEvent,
-            event: Event,
-            completion: ActionHandler
-        ) {
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val user = sharedInstance.user(context)
-                    if (user == null) {
-                        Logger.sharedInstance.log("quin track: user is null")
-                        return@launch
-                    }
-
-                    val req = event.withUser(user)
-                    val httpBody: String = Http.sharedInstance.json.encodeToString(req)
-
-                    Http.sharedInstance.post(path, httpBody) { response ->
-                        response?.let {
-                            sharedInstance.saveUser(context, it)
-                            CoroutineScope(Dispatchers.Main).launch {
-                                completion(it.content?.interaction)
-                            }
-                        } ?: Logger.sharedInstance.log("quin track: response is null")
-                    }
-                } catch (e: Exception) {
-                    Logger.sharedInstance.log("quin track error: ${e.message}")
-                }
+            return instance ?: synchronized(this) {
+                instance ?: Quin(coroutineScope).also { instance = it }
             }
-
         }
+    }
 
-        fun closeConnection() {
-            Http.sharedInstance.closeConnection()
+    fun setConfig(apiKey: String, domain: String, debug: Boolean = false) {
+        Http.setConfig(apiKey, domain)
+        Logger.setConfig(debug)
+    }
+
+    fun setUser(context: Context, googleClientId: String) {
+        user(context, googleClientId)
+    }
+
+
+    fun track(
+        context: Context,
+        path: String = pathEvent,
+        event: Event,
+        completion: ActionHandler
+    ) {
+        coroutineScope.launch {
+            try {
+                val user = user(context)
+                if (user == null) {
+                    Logger.sharedInstance.log("quin track: user is null")
+                    return@launch
+                }
+
+                val req = event.withUser(user)
+                val httpBody: String = Http.sharedInstance.json.encodeToString(req)
+
+                Http.sharedInstance.post(path, httpBody) { response ->
+                    response?.let {
+                        saveUser(context, it)
+                        completion(it.content?.interaction)
+                    } ?: Logger.sharedInstance.log("quin track: response is null")
+                }
+            } catch (e: Exception) {
+                Logger.sharedInstance.log("quin track error: ${e.message}")
+            }
         }
 
     }
 
-    internal class ECommerceImpl : ECommerce {
+
+    fun closeConnection() {
+        Http.sharedInstance.closeConnection()
+    }
+
+    private fun user(context: Context, googleClientId: String? = null): User? {
+        try {
+            if(cachedUser != null) return cachedUser
+
+            val user = UserStore.load(context)
+            if (user == null) {
+                val mutex = Mutex(false)
+                runBlocking {
+                    mutex.withLock {
+                        Http.sharedInstance.post(pathSession, null) { response ->
+                            saveUser(context, response, googleClientId)
+                        }
+                    }
+                }
+            }
+            cachedUser = UserStore.load(context)
+            return cachedUser
+        } catch (e: java.lang.Exception) {
+            Logger.sharedInstance.log("quin user: ${e.message}")
+            return null
+        }
+    }
+
+    private fun saveUser(context: Context, response: Response?, googleClientId: String? = null) {
+        try {
+            if (response?.content == null) {
+                Logger.sharedInstance.log("quin saveUser: response user is null")
+                return
+            }
+            val user = response.content.user()
+            if (googleClientId != null) {
+                user.googleClientId = googleClientId
+            }
+            UserStore.save(context, user)
+            cachedUser = user
+        } catch (e: java.lang.Exception) {
+            Logger.sharedInstance.log("quin user: ${e.message}")
+
+        }
+
+    }
+
+
+
+
+    inner class ECommerceImpl : ECommerce {
         override fun sendPageViewHomeEvent(context: Context, completion: ActionHandler) {
             track(context, event = Event.eCommerce.pageViewHomeEvent(), completion = completion)
         }
@@ -355,41 +411,5 @@ class Quin private constructor() {
         }
     }
 
-    private fun user(context: Context, googleClientId: String? = null): User? {
-        try {
-            val user = UserStore.load(context)
-            if (user == null) {
-                val mutex = Mutex(false)
-                runBlocking {
-                    mutex.withLock {
-                        Http.sharedInstance.post(pathSession, null) { response ->
-                            saveUser(context, response, googleClientId)
-                        }
-                    }
-                }
-            }
-            return UserStore.load(context)
-        } catch (e: java.lang.Exception) {
-            Logger.sharedInstance.log("quin user: ${e.message}")
-            return null
-        }
-    }
 
-    private fun saveUser(context: Context, response: Response?, googleClientId: String? = null) {
-        try {
-            if (response?.content == null) {
-                Logger.sharedInstance.log("quin saveUser: response user is null")
-                return
-            }
-            val user = response.content.user()
-            if (googleClientId != null) {
-                user.googleClientId = googleClientId
-            }
-            UserStore.save(context, user)
-        } catch (e: java.lang.Exception) {
-            Logger.sharedInstance.log("quin user: ${e.message}")
-
-        }
-
-    }
 }
