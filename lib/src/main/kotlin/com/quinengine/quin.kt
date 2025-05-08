@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 
 interface ECommerce {
@@ -109,7 +110,10 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
     }
 
     fun setUser(context: Context, googleClientId: String) {
-        user(context, googleClientId)
+        coroutineScope.launch {
+            user(context, googleClientId)
+        }
+
     }
 
 
@@ -148,23 +152,20 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
         Http.sharedInstance.closeConnection()
     }
 
-    private fun user(context: Context, googleClientId: String? = null): User? {
+    suspend fun user(context: Context, googleClientId: String? = null): User? {
         try {
             if(cachedUser != null) return cachedUser
 
-            val user = UserStore.load(context)
-            if (user == null) {
-                val mutex = Mutex(false)
-                runBlocking {
-                    mutex.withLock {
-                        Http.sharedInstance.post(pathSession, null) { response ->
-                            saveUser(context, response, googleClientId)
-                        }
-                    }
+            return withContext (Dispatchers.IO){
+                var user = UserStore.load(context)
+                if(user == null){
+                   val response = Http.sharedInstance.postAwait(pathSession, null)
+                    saveUser(context, response, googleClientId)
+                    user = UserStore.load(context)
                 }
+                cachedUser = user
+                cachedUser
             }
-            cachedUser = UserStore.load(context)
-            return cachedUser
         } catch (e: java.lang.Exception) {
             Logger.sharedInstance.log("quin user: ${e.message}")
             return null

@@ -15,6 +15,9 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.URLProtocol
 import io.ktor.http.encodedPath
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 
 class Http private constructor() {
@@ -72,6 +75,15 @@ class Http private constructor() {
     suspend fun post(path: String, b: String? = null, completion: ResponseHandler) {
         val request = request(path, HttpMethod.Post, b)
         execute(request, completion)
+    }
+
+
+    suspend fun postAwait(path: String, b: String? = null): Response? {
+       val deferred = CompletableDeferred<Response?>()
+        post(path,b) {response ->
+            deferred.complete(response)
+        }
+        return deferred.await()
     }
 
     fun closeConnection() {
