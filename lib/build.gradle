@@ -13,7 +13,7 @@ android {
     compileSdk 34
     defaultConfig {
         versionCode 1
-        versionName "1.0.8"
+        versionName "2.0.2"
         minSdk 21
     }
 
