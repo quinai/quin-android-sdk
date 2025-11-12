@@ -11,77 +11,85 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 
 interface ECommerce {
-    fun sendPageViewHomeEvent(context: Context, completion: ActionHandler)
-    fun sendPageViewListingEvent(context: Context, label: String, completion: ActionHandler)
+    fun sendPageViewHomeEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendPageViewListingEvent(context: Context, label: String, completion: ActionHandler,experience: ExperienceHandler)
     fun sendPageViewListingWithCategoryIdEvent(
         context: Context,
         label: String,
         categoryId: String,
-        completion: ActionHandler
+        completion: ActionHandler,
+        experience: ExperienceHandler
     )
     fun sendAddToCartListingEvent(
         context: Context,
         item: Item?,
         quantity: Int,
-        completion: ActionHandler
+        completion: ActionHandler,
+        experience: ExperienceHandler
     )
 
-    fun sendFilterEvent(context: Context, completion: ActionHandler)
-    fun sendPageViewDetailEvent(context: Context, item: Item?, completion: ActionHandler)
+    fun sendFilterEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendPageViewDetailEvent(context: Context, item: Item?, completion: ActionHandler,experience: ExperienceHandler)
     fun sendAddToCartDetailEvent(
         context: Context,
         item: Item?,
         quantity: Int,
-        completion: ActionHandler
+        completion: ActionHandler,
+        experience: ExperienceHandler
     )
 
-    fun sendAddToFavouritesEvent(context: Context, item: Item?, completion: ActionHandler)
-    fun sendProductInfoEvent(context: Context, item: Item?, completion: ActionHandler)
-    fun sendCommentsEvent(context: Context, completion: ActionHandler)
+    fun sendAddToFavouritesEvent(context: Context, item: Item?, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendProductInfoEvent(context: Context, item: Item?, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendCommentsEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
     fun sendQuantityDetailEvent(
         context: Context,
         item: Item?,
         quantity: Int,
-        completion: ActionHandler
+        completion: ActionHandler,
+        experience: ExperienceHandler
     )
 
     fun sendQuantityCartEvent(
         context: Context,
         item: Item?,
         quantity: Int,
-        completion: ActionHandler
+        completion: ActionHandler,
+        experience: ExperienceHandler
     )
 
-    fun sendGoToCartEvent(context: Context, completion: ActionHandler)
-    fun sendContinueShoppingEvent(context: Context, completion: ActionHandler)
+    fun sendGoToCartEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendContinueShoppingEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
     fun sendRemoveFromCartEvent(
         context: Context,
         item: Item?,
         quantity: Int,
-        completion: ActionHandler
+        completion: ActionHandler,
+        experience: ExperienceHandler
     )
 
-    fun sendEmptyCartEvent(context: Context, completion: ActionHandler)
-    fun sendCheckoutEvent(context: Context, completion: ActionHandler)
-    fun sendLoginEvent(context: Context, completion: ActionHandler)
-    fun sendDiscountCodeEvent(context: Context, discountCode: String, completion: ActionHandler)
-    fun sendDeliveryFeeEvent(context: Context, completion: ActionHandler)
-    fun sendAddressEvent(context: Context, completion: ActionHandler)
-    fun sendPaymentTypeEvent(context: Context, completion: ActionHandler)
+    fun sendEmptyCartEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendCheckoutEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendLoginEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendDiscountCodeEvent(context: Context, discountCode: String, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendDeliveryFeeEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendAddressEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
+    fun sendPaymentTypeEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
     fun sendPurchaseCompletedEvent(
         context: Context,
         totalBasketSize: Float,
-        completion: ActionHandler
+        completion: ActionHandler,
+        experience: ExperienceHandler
     )
 
     fun sendAddToCartServiceEvent(
         context: Context,
         item: Item?,
         quantity: Int,
-        completion: ActionHandler
+        completion: ActionHandler,
+        experience: ExperienceHandler
     )
 
-    fun sendTestEvent(context: Context, completion: ActionHandler)
+    fun sendTestEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler)
 }
 
 class Quin private constructor(private val coroutineScope: CoroutineScope) {
@@ -121,7 +129,8 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
         context: Context,
         path: String = pathEvent,
         event: Event,
-        completion: ActionHandler
+        completion: ActionHandler,
+        experience: ExperienceHandler
     ) {
         coroutineScope.launch {
             try {
@@ -138,6 +147,7 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
                     response?.let {
                         saveUser(context, it)
                         completion(it.content?.interaction)
+                        experience(it.content?.experienceInteraction)
                     } ?: Logger.sharedInstance.log("quin track: response is null")
                 }
             } catch (e: Exception) {
@@ -159,7 +169,7 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
             return withContext (Dispatchers.IO){
                 var user = UserStore.load(context)
                 if(user == null){
-                   val response = Http.sharedInstance.postAwait(pathSession, null)
+                    val response = Http.sharedInstance.postAwait(pathSession, null)
                     saveUser(context, response, googleClientId)
                     user = UserStore.load(context)
                 }
@@ -195,19 +205,21 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
 
 
     inner class ECommerceImpl : ECommerce {
-        override fun sendPageViewHomeEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.pageViewHomeEvent(), completion = completion)
+        override fun sendPageViewHomeEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.pageViewHomeEvent(), completion = completion, experience = experience)
         }
 
         override fun sendPageViewListingEvent(
             context: Context,
             label: String,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.pageViewListingEvent(label = label),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
@@ -215,12 +227,14 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
             context: Context,
             label: String,
             categoryId: String,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ){
             track(
                 context,
                 event = Event.eCommerce.pageViewListingWithCategoryId(label=label, categoryId=categoryId),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
@@ -228,28 +242,33 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
             context: Context,
             item: Item?,
             quantity: Int,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.addToCartListingEvent(item = item, quantity = quantity),
-                completion = completion
+                completion = completion,
+                experience = experience
+
             )
         }
 
-        override fun sendFilterEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.filterEvent(), completion = completion)
+        override fun sendFilterEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.filterEvent(), completion = completion, experience = experience)
         }
 
         override fun sendPageViewDetailEvent(
             context: Context,
             item: Item?,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.pageViewDetailEvent(item = item),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
@@ -257,53 +276,61 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
             context: Context,
             item: Item?,
             quantity: Int,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.addToCartDetailEvent(item = item, quantity = quantity),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
         override fun sendAddToFavouritesEvent(
             context: Context,
             item: Item?,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.addToFavouritesEvent(item = item),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
         override fun sendProductInfoEvent(
             context: Context,
             item: Item?,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.productInfoEvent(item = item),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
-        override fun sendCommentsEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.commentsEvent(), completion = completion)
+        override fun sendCommentsEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.commentsEvent(), completion = completion, experience = experience)
         }
 
         override fun sendQuantityDetailEvent(
             context: Context,
             item: Item?,
             quantity: Int,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.quantityDetailEvent(item = item, quantity = quantity),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
@@ -311,81 +338,89 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
             context: Context,
             item: Item?,
             quantity: Int,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.quantityCartEvent(item = item, quantity = quantity),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
-        override fun sendGoToCartEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.goToCartEvent(), completion = completion)
+        override fun sendGoToCartEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.goToCartEvent(), completion = completion, experience = experience)
         }
 
-        override fun sendContinueShoppingEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.continueShoppingEvent(), completion = completion)
+        override fun sendContinueShoppingEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.continueShoppingEvent(), completion = completion, experience = experience)
         }
 
         override fun sendRemoveFromCartEvent(
             context: Context,
             item: Item?,
             quantity: Int,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.removeFromCartEvent(item = item, quantity = quantity),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
-        override fun sendEmptyCartEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.emptyCartEvent(), completion = completion)
+        override fun sendEmptyCartEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.emptyCartEvent(), completion = completion, experience = experience)
         }
 
-        override fun sendCheckoutEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.checkoutEvent(), completion = completion)
+        override fun sendCheckoutEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.checkoutEvent(), completion = completion, experience = experience)
         }
 
-        override fun sendLoginEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.loginEvent(), completion = completion)
+        override fun sendLoginEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.loginEvent(), completion = completion, experience=experience)
         }
 
         override fun sendDiscountCodeEvent(
             context: Context,
             discountCode: String,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.discountCodeEvent(discountCode = discountCode),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
-        override fun sendDeliveryFeeEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.deliveryFeeEvent(), completion = completion)
+        override fun sendDeliveryFeeEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.deliveryFeeEvent(), completion = completion, experience = experience)
         }
 
-        override fun sendAddressEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.addressEvent(), completion = completion)
+        override fun sendAddressEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.addressEvent(), completion = completion, experience = experience)
         }
 
-        override fun sendPaymentTypeEvent(context: Context, completion: ActionHandler) {
-            track(context, event = Event.eCommerce.paymentTypeEvent(), completion = completion)
+        override fun sendPaymentTypeEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
+            track(context, event = Event.eCommerce.paymentTypeEvent(), completion = completion, experience = experience)
         }
 
         override fun sendPurchaseCompletedEvent(
             context: Context,
             totalBasketSize: Float,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.purchaseCompletedEvent(totalBasketSize = totalBasketSize),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
@@ -393,21 +428,24 @@ class Quin private constructor(private val coroutineScope: CoroutineScope) {
             context: Context,
             item: Item?,
             quantity: Int,
-            completion: ActionHandler
+            completion: ActionHandler,
+            experience: ExperienceHandler
         ) {
             track(
                 context,
                 event = Event.eCommerce.addToCartServiceEvent(item = item, quantity = quantity),
-                completion = completion
+                completion = completion,
+                experience = experience
             )
         }
 
-        override fun sendTestEvent(context: Context, completion: ActionHandler) {
+        override fun sendTestEvent(context: Context, completion: ActionHandler,experience: ExperienceHandler) {
             track(
                 context,
                 path = testEvent,
                 event = Event.eCommerce.pageViewHomeEvent(),
-                completion = completion
+                completion = completion,
+                experience=experience
             )
         }
     }

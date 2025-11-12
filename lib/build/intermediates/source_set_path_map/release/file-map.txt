@@ -1,0 +1,8 @@
+com.quinengine.lib-pngs-0 /Users/yusuferdogan/Desktop/Projects/mobile/quin-android-sdk/lib/build/generated/res/pngs/release
+com.quinengine.lib-resValues-1 /Users/yusuferdogan/Desktop/Projects/mobile/quin-android-sdk/lib/build/generated/res/resValues/release
+com.quinengine.lib-rs-2 /Users/yusuferdogan/Desktop/Projects/mobile/quin-android-sdk/lib/build/generated/res/rs/release
+com.quinengine.lib-mergeReleaseResources-3 /Users/yusuferdogan/Desktop/Projects/mobile/quin-android-sdk/lib/build/intermediates/incremental/release/mergeReleaseResources/merged.dir
+com.quinengine.lib-mergeReleaseResources-4 /Users/yusuferdogan/Desktop/Projects/mobile/quin-android-sdk/lib/build/intermediates/incremental/release/mergeReleaseResources/stripped.dir
+com.quinengine.lib-merged_res-5 /Users/yusuferdogan/Desktop/Projects/mobile/quin-android-sdk/lib/build/intermediates/merged_res/release
+com.quinengine.lib-main-6 /Users/yusuferdogan/Desktop/Projects/mobile/quin-android-sdk/lib/src/main/res
+com.quinengine.lib-release-7 /Users/yusuferdogan/Desktop/Projects/mobile/quin-android-sdk/lib/src/release/res
