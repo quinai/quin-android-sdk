@@ -129,6 +129,25 @@ DisplayProperty {
 }
 ```
 
+## Experience and Campaign 
+```kotlin
+Campaign {
+    paddle: Boolean?
+    position: String?
+    contentType: String?
+    code: String?
+}
+
+
+```
+```kotlin
+ Experience {
+    campaignContent: Campaign?
+    type: String?
+    promotionCode: String?
+}
+```
+The `code` field within the campaign structure contains HTML code for the pop-up. You can display this HTML code using a `WebView` tool.
 ***
 
 ## Sending Events
@@ -147,30 +166,30 @@ In Quin we have a set of predefined event sender functions that require minimum 
 Functions that send predefined events by Quin SDK are listed below.
 
 ```kotlin
-sendPageViewHomeEvent(context: Context, completion: ActionHandler)
-sendPageViewListingEvent(context: Context, label: String, completion: ActionHandler)
-sendPageViewListingWithCategoryIdEvent(context: Context, label: String,categoryId: String,completion: ActionHandler)
-sendAddToCartListingEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler)
-sendFilterEvent(context: Context, completion: ActionHandler)
-sendPageViewDetailEvent(context: Context, item: Item?, completion: ActionHandler)
-sendAddToCartDetailEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler)
-sendAddToFavouritesEvent(context: Context, item: Item?, completion: ActionHandler)
-sendProductInfoEvent(context: Context, item: Item?, completion: ActionHandler)
-sendCommentsEvent(context: Context, completion: ActionHandler)
-sendQuantityDetailEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler)
-sendQuantityCartEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler)
-sendGoToCartEvent(context: Context, completion: ActionHandler)
-sendContinueShoppingEvent(context: Context, completion: ActionHandler)
-sendRemoveFromCartEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler)
-sendEmptyCartEvent(context: Context, completion: ActionHandler)
-sendCheckoutEvent(context: Context, completion: ActionHandler)
-sendLoginEvent(context: Context, completion: ActionHandler)
-sendDiscountCodeEvent(context: Context, discountCode: String, completion: ActionHandler)
-sendDeliveryFeeEvent(context: Context, completion: ActionHandler)
-sendAddressEvent(context: Context, completion: ActionHandler)
-sendPaymentTypeEvent(context: Context, completion: ActionHandler)
-sendPurchaseCompletedEvent(context: Context, totalBasketSize: Float, completion: ActionHandler)
-sendAddToCartServiceEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler)
+sendPageViewHomeEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendPageViewListingEvent(context: Context, label: String, completion: ActionHandler, experience: ExperienceHandler)
+sendPageViewListingWithCategoryIdEvent(context: Context, label: String,categoryId: String,completion: ActionHandler, experience: ExperienceHandler)
+sendAddToCartListingEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler, experience: ExperienceHandler)
+sendFilterEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendPageViewDetailEvent(context: Context, item: Item?, completion: ActionHandler, experience: ExperienceHandler)
+sendAddToCartDetailEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler, experience: ExperienceHandler)
+sendAddToFavouritesEvent(context: Context, item: Item?, completion: ActionHandler, experience: ExperienceHandler)
+sendProductInfoEvent(context: Context, item: Item?, completion: ActionHandler, experience: ExperienceHandler)
+sendCommentsEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendQuantityDetailEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler, experience: ExperienceHandler)
+sendQuantityCartEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler, experience: ExperienceHandler)
+sendGoToCartEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendContinueShoppingEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendRemoveFromCartEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler, experience: ExperienceHandler)
+sendEmptyCartEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendCheckoutEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendLoginEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendDiscountCodeEvent(context: Context, discountCode: String, completion: ActionHandler, experience: ExperienceHandler)
+sendDeliveryFeeEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendAddressEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendPaymentTypeEvent(context: Context, completion: ActionHandler, experience: ExperienceHandler)
+sendPurchaseCompletedEvent(context: Context, totalBasketSize: Float, completion: ActionHandler, experience: ExperienceHandler)
+sendAddToCartServiceEvent(context: Context, item: Item?, quantity: Int, completion: ActionHandler, experience: ExperienceHandler)
 ```
 
 All predefined functions above are defined inside e-commerce interface to create an abstraction to users. You can simply send events from interface variable inside Quin singleton class. Following lines explain how to use them. 

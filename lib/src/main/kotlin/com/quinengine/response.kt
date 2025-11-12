@@ -16,7 +16,8 @@ data class Content(
     val sessionId: String = "",
     val userId: String = "",
     val token: String = "",
-    val interaction: Action? = null
+    val interaction: Action? = null,
+    val experienceInteraction: Experience? = null
 ) {
     fun user(): User {
         return User(id = userId, token = token, googleClientId = "")
