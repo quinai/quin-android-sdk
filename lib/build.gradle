@@ -1,4 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.Base64
 
 plugins {
     id 'com.android.library'
@@ -11,6 +14,7 @@ plugins {
 android {
     namespace "com.quinengine"
     compileSdk 34
+
     defaultConfig {
         versionCode 1
         versionName "2.0.2"
@@ -34,6 +38,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -41,61 +46,99 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = '1.8'
     }
 }
 
-task jar(type: Jar) {
-    archiveClassifier.set('')
-    from android.sourceSets.main.kotlin.srcDirs
+task sourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from android.sourceSets.main.java.srcDirs
 }
 
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-    testLogging {
-        showExceptions = true
-        showStandardStreams = true
-        exceptionFormat = TestExceptionFormat.FULL
+// Javadoc JAR task
+task javadocJar(type: Jar) {
+    archiveClassifier.set('javadoc')
+    from android.sourceSets.main.java.srcDirs
+}
+
+// POM dosyası oluşturma task'ı
+task generateReleasePom {
+    doLast {
+        def pomFile = file("$buildDir/libs/android-sdk-2.0.2.pom")
+        pomFile.parentFile.mkdirs()
+
+        pomFile.text = """<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.quinengine</groupId>
+  <artifactId>android-sdk</artifactId>
+  <version>2.0.2</version>
+  <packaging>aar</packaging>
+  <name>Quin Android SDK</name>
+  <description>Android software development kit of Quin Audience Engine Services</description>
+  <url>https://www.quinengine.com</url>
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>yusuf</id>
+      <name>Yusuf Erdogan</name>
+      <email>yusuf@quinengine.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/quinai/android-sdk.git</connection>
+    <developerConnection>scm:git:ssh://github.com/quinai/android-sdk.git</developerConnection>
+    <url>https://github.com/quinai/android-sdk/tree/production</url>
+  </scm>
+</project>"""
+
+        println "POM file created at: ${pomFile.absolutePath}"
     }
-}
-
-artifacts {
-    archives jar
 }
 
 afterEvaluate {
     publishing {
         repositories {
             maven {
-                url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                name = "ossrh-staging-api"
+               // def releasesRepoUrl = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+               // def snapshotsRepoUrl = "https://central.sonatype.com/repository/maven-snapshots/"
+
+                url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+
+
                 credentials {
-                    username findProperty("ossrhUsername") ?: ""
-                    password findProperty("ossrhPassword") ?: ""
+                    username = findProperty("sonatypeUsername")
+                    password = findProperty("sonatypePassword")
                 }
+
             }
         }
 
         publications {
-            maven(MavenPublication) {
+            release(MavenPublication) {
                 from components.release
 
-                artifactId = 'android-sdk'
                 groupId = 'com.quinengine'
+                artifactId = 'android-sdk'
                 version = '2.0.2'
-                description = 'Android software development kit for Quin Audience Engine services.'
-
-                artifact jar
 
                 pom {
                     name = 'Quin Android SDK'
-                    description = 'Android software deleopment kit of Quin Audience Engine Services'
+                    description = 'Android software development kit of Quin Audience Engine Services'
                     url = 'https://www.quinengine.com'
-                    packaging 'jar'
+                    packaging = 'aar'
 
                     scm {
                         connection = 'scm:git:git://github.com/quinai/android-sdk.git'
-                        developerConnection = 'scm:git:git://github.com/quinai/android-sdk.git'
+                        developerConnection = 'scm:git:ssh://github.com/quinai/android-sdk.git'
                         url = 'https://github.com/quinai/android-sdk/tree/production'
                     }
 
@@ -108,17 +151,64 @@ afterEvaluate {
 
                     developers {
                         developer {
-                            id = 'batuhan'
-                            name = 'Batuhan Caliskan'
-                            email = 'batuhan@quinengine.com'
+                            id = 'yusuf'
+                            name = 'Yusuf Erdogan'
+                            email = 'yusuf@quinengine.com'
                         }
                     }
                 }
             }
         }
+    }
 
-        signing {
-            sign publishing.publications.maven
+    // Signing configuration
+    signing {
+        required = true
+
+        def signingKeyId = findProperty("signingKeyId")
+        def signingKey = findProperty("signingKey")
+        def signingPassword = findProperty("signingPassword")
+
+        if (signingKeyId && signingKey && signingPassword) {
+            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        }
+        sign publishing.publications.release
+    }
+}
+
+tasks.register("promoteToCentral"){
+    group = "publishing"
+    description="Upload the deffault repository deployment to Central Portal"
+
+    dependsOn "publish"
+
+    doLast {
+        def username = findProperty("sonatypeUsername")
+        def password = findProperty("sonatypePassword")
+        def namespace = (findProperty("sonatypeNamespace") ?: "com.quinengine") as String
+        if(!username || !password){
+            throw new GradleException("sonatypeUsername / sonatypePassword")
+        }
+
+        def token = Base64.encoder.encodeToString("${username}:${password}".getBytes("UTF-8"))
+        def url = new URL("https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${namespace}")
+
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection()
+        connection.setRequestMethod("POST")
+        connection.setRequestProperty("Authorization", "Bearer ${token}")
+        connection.setDoOutput(false)
+
+        int responseCode = connection.getResponseCode()
+        println "Sonatype promoteToCentral response: ${responseCode} ${connection.getResponseMessage()}"
+
+        InputStream stream = responseCode >= 400 ? connection.getErrorStream() : connection.getInputStream()
+        if (stream != null) {
+            def body = stream.getText("UTF-8")
+            println "Sonatype response body:\n${body}"
+        }
+
+        if (responseCode >= 400) {
+            throw new GradleException("Promote to Central failed with status ${responseCode}")
         }
 
     }
@@ -135,5 +225,4 @@ dependencies {
     testImplementation "androidx.test:core:1.5.0"
     testImplementation "org.mockito:mockito-core:5.8.0"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0"
-
 }
